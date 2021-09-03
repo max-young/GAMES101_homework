@@ -1,0 +1,6 @@
+- 检查是否安装cmake: `cmake --version`
+- 安装Eigen: `brew install eigen`
+- 在当前目录下: `cmake . -B build`
+- 跳转到编译路径下: `cd build`
+- 编译: `make`
+- 执行: 在pa0路径下: `./build/Transformation`
