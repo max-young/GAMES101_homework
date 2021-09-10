@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/Users/yangle/cg_homework/build",
+  "command": "/usr/bin/clang++  -I/usr/local/include -isystem /usr/local/Cellar/opencv/4.5.3_2/include/opencv4 -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk -std=gnu++17 -o CMakeFiles/Rasterizer.dir/main.cpp.o -c /Users/yangle/cg_homework/Assignment1/code/main.cpp",
+  "file": "/Users/yangle/cg_homework/Assignment1/code/main.cpp"
+},
+{
+  "directory": "/Users/yangle/cg_homework/build",
+  "command": "/usr/bin/clang++  -I/usr/local/include -isystem /usr/local/Cellar/opencv/4.5.3_2/include/opencv4 -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk -std=gnu++17 -o CMakeFiles/Rasterizer.dir/rasterizer.cpp.o -c /Users/yangle/cg_homework/Assignment1/code/rasterizer.cpp",
+  "file": "/Users/yangle/cg_homework/Assignment1/code/rasterizer.cpp"
+},
+{
+  "directory": "/Users/yangle/cg_homework/build",
+  "command": "/usr/bin/clang++  -I/usr/local/include -isystem /usr/local/Cellar/opencv/4.5.3_2/include/opencv4 -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX11.3.sdk -std=gnu++17 -o CMakeFiles/Rasterizer.dir/Triangle.cpp.o -c /Users/yangle/cg_homework/Assignment1/code/Triangle.cpp",
+  "file": "/Users/yangle/cg_homework/Assignment1/code/Triangle.cpp"
+}
+]

@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/usr/local/Cellar/opencv/4.5.3_2/include/opencv4"
+            ],
+            "defines": [],
+            "macFrameworkPath": [],
+            "cStandard": "gnu17",
+            "intelliSenseMode": "macos-gcc-x64",
+            "compilerPath": "/usr/bin/clang++",
+            "cppStandard": "c++20"
+        }
+    ],
+    "version": 4
+}
