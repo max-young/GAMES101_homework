@@ -48,10 +48,10 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /usr/local/Cellar/cmake/3.21.1/bin/cmake
+CMAKE_COMMAND = /usr/local/Cellar/cmake/3.21.2/bin/cmake
 
 # The command to remove a file.
-RM = /usr/local/Cellar/cmake/3.21.1/bin/cmake -E rm -f
+RM = /usr/local/Cellar/cmake/3.21.2/bin/cmake -E rm -f
 
 # Escaping for special characters.
 EQUALS = =
@@ -68,7 +68,7 @@ CMAKE_BINARY_DIR = /Users/yangle/cg_homework/Assignment1/code/build
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/local/Cellar/cmake/3.21.1/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/usr/local/Cellar/cmake/3.21.2/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -78,7 +78,7 @@ rebuild_cache/fast: rebuild_cache
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
-	/usr/local/Cellar/cmake/3.21.1/bin/ccmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/usr/local/Cellar/cmake/3.21.2/bin/ccmake -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -129,30 +129,6 @@ Rasterizer/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Rasterizer.dir/build.make CMakeFiles/Rasterizer.dir/build
 .PHONY : Rasterizer/fast
 
-Triangle.o: Triangle.cpp.o
-.PHONY : Triangle.o
-
-# target to build an object file
-Triangle.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Rasterizer.dir/build.make CMakeFiles/Rasterizer.dir/Triangle.cpp.o
-.PHONY : Triangle.cpp.o
-
-Triangle.i: Triangle.cpp.i
-.PHONY : Triangle.i
-
-# target to preprocess a source file
-Triangle.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Rasterizer.dir/build.make CMakeFiles/Rasterizer.dir/Triangle.cpp.i
-.PHONY : Triangle.cpp.i
-
-Triangle.s: Triangle.cpp.s
-.PHONY : Triangle.s
-
-# target to generate assembly for a file
-Triangle.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Rasterizer.dir/build.make CMakeFiles/Rasterizer.dir/Triangle.cpp.s
-.PHONY : Triangle.cpp.s
-
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -177,29 +153,53 @@ main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Rasterizer.dir/build.make CMakeFiles/Rasterizer.dir/main.cpp.s
 .PHONY : main.cpp.s
 
-rasterizer.o: rasterizer.cpp.o
-.PHONY : rasterizer.o
+src/Triangle.o: src/Triangle.cpp.o
+.PHONY : src/Triangle.o
 
 # target to build an object file
-rasterizer.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Rasterizer.dir/build.make CMakeFiles/Rasterizer.dir/rasterizer.cpp.o
-.PHONY : rasterizer.cpp.o
+src/Triangle.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Rasterizer.dir/build.make CMakeFiles/Rasterizer.dir/src/Triangle.cpp.o
+.PHONY : src/Triangle.cpp.o
 
-rasterizer.i: rasterizer.cpp.i
-.PHONY : rasterizer.i
+src/Triangle.i: src/Triangle.cpp.i
+.PHONY : src/Triangle.i
 
 # target to preprocess a source file
-rasterizer.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Rasterizer.dir/build.make CMakeFiles/Rasterizer.dir/rasterizer.cpp.i
-.PHONY : rasterizer.cpp.i
+src/Triangle.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Rasterizer.dir/build.make CMakeFiles/Rasterizer.dir/src/Triangle.cpp.i
+.PHONY : src/Triangle.cpp.i
 
-rasterizer.s: rasterizer.cpp.s
-.PHONY : rasterizer.s
+src/Triangle.s: src/Triangle.cpp.s
+.PHONY : src/Triangle.s
 
 # target to generate assembly for a file
-rasterizer.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Rasterizer.dir/build.make CMakeFiles/Rasterizer.dir/rasterizer.cpp.s
-.PHONY : rasterizer.cpp.s
+src/Triangle.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Rasterizer.dir/build.make CMakeFiles/Rasterizer.dir/src/Triangle.cpp.s
+.PHONY : src/Triangle.cpp.s
+
+src/rasterizer.o: src/rasterizer.cpp.o
+.PHONY : src/rasterizer.o
+
+# target to build an object file
+src/rasterizer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Rasterizer.dir/build.make CMakeFiles/Rasterizer.dir/src/rasterizer.cpp.o
+.PHONY : src/rasterizer.cpp.o
+
+src/rasterizer.i: src/rasterizer.cpp.i
+.PHONY : src/rasterizer.i
+
+# target to preprocess a source file
+src/rasterizer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Rasterizer.dir/build.make CMakeFiles/Rasterizer.dir/src/rasterizer.cpp.i
+.PHONY : src/rasterizer.cpp.i
+
+src/rasterizer.s: src/rasterizer.cpp.s
+.PHONY : src/rasterizer.s
+
+# target to generate assembly for a file
+src/rasterizer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Rasterizer.dir/build.make CMakeFiles/Rasterizer.dir/src/rasterizer.cpp.s
+.PHONY : src/rasterizer.cpp.s
 
 # Help Target
 help:
@@ -210,15 +210,15 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... Rasterizer"
-	@echo "... Triangle.o"
-	@echo "... Triangle.i"
-	@echo "... Triangle.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
-	@echo "... rasterizer.o"
-	@echo "... rasterizer.i"
-	@echo "... rasterizer.s"
+	@echo "... src/Triangle.o"
+	@echo "... src/Triangle.i"
+	@echo "... src/Triangle.s"
+	@echo "... src/rasterizer.o"
+	@echo "... src/rasterizer.i"
+	@echo "... src/rasterizer.s"
 .PHONY : help
 
 

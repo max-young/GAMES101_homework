@@ -22,12 +22,16 @@ Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
 
 Eigen::Matrix4f get_model_matrix(float rotation_angle)
 {
+    // 单位矩阵
     Eigen::Matrix4f model = Eigen::Matrix4f::Identity();
 
     // TODO: Implement this function
     // Create the model matrix for rotating the triangle around the Z axis.
     // Then return it.
-
+    model(0, 0) = cos(rotation_angle * MY_PI / 180);
+    model(0, 1) = -sin(rotation_angle * MY_PI / 180);
+    model(1, 0) = sin(rotation_angle * MY_PI / 180);
+    model(1, 1) = cos(rotation_angle * MY_PI / 180);
     return model;
 }
 
@@ -52,7 +56,9 @@ int main(int argc, const char** argv)
     bool command_line = false;
     std::string filename = "output.png";
 
-    // 根据命令行获取旋转角度和输出文件名称
+    // 根据命令行参数获取旋转角度和输出文件名称
+    // 参数示例用法: main −r 20 image.png
+    // argc[0]就是main文件, argc[2]就是20旋转角度, argc[3]就是输出文件
     if (argc >= 3) {
         command_line = true;
         angle = std::stof(argv[2]); // -r by default
@@ -63,22 +69,29 @@ int main(int argc, const char** argv)
             return 0;
     }
 
-    // 初始化光栅化对象, 在rasterizer.hpp文件里
+    // 初始化光栅化器的尺寸, 像素数量是700*700
     rst::rasterizer r(700, 700);
 
+    // 视点(相机的中心位置, 人眼位置)
     Eigen::Vector3f eye_pos = {0, 0, 5};
 
+    // 三个三位点的数组, 构成一个三角形
     std::vector<Eigen::Vector3f> pos{{2, 0, -2}, {0, 2, -2}, {-2, 0, -2}};
 
+    // 单个向量的数组
     std::vector<Eigen::Vector3i> ind{{0, 1, 2}};
 
+    // 将上面两个字放入字典, 下面两个值是对应的key
     auto pos_id = r.load_positions(pos);
     auto ind_id = r.load_indices(ind);
+
+    std::cout << filename;
 
     int key = 0;
     int frame_count = 0;
 
     if (command_line) {
+        // 将光栅化器初始化, 所有像素都变成0, 0, 0
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
 
         r.set_model(get_model_matrix(angle));
