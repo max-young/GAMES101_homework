@@ -45,6 +45,21 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio,
     // TODO: Implement this function
     // Create the projection matrix for the given parameters.
     // Then return it.
+    float n = -zNear;
+    float f = -zFar;
+    float t = fabs(n) * tan(eye_fov / 2 * MY_PI / 180);
+    float b = -t;
+    float r = t * aspect_ratio;
+    float l = -r;
+
+    projection(0, 0) = 2 * n / (r - l);
+    projection(0, 2) = (l + r) / (l - r);
+    projection(1, 1) = 2 * n / (t - b);
+    projection(1, 2) = (b + t) / (b - t);
+    projection(2, 2) = (f + n) / (n - f);
+    projection(2, 3) = 2 * f * n / (f - n);
+    projection(3, 2) = 1;
+    projection(3, 3) = 0;
 
     return projection;
 }
@@ -81,7 +96,7 @@ int main(int argc, const char** argv)
     // 单个向量的数组
     std::vector<Eigen::Vector3i> ind{{0, 1, 2}};
 
-    // 将上面两个字放入字典, 下面两个值是对应的key
+    // 将上面两个值放入字典, 下面两个值是对应的key
     auto pos_id = r.load_positions(pos);
     auto ind_id = r.load_indices(ind);
 
@@ -94,8 +109,11 @@ int main(int argc, const char** argv)
         // 将光栅化器初始化, 所有像素都变成0, 0, 0
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
 
+        // 光栅化器的旋转矩阵, 绕Z轴旋转angle角度
         r.set_model(get_model_matrix(angle));
+        // 光栅化器的平移矩阵, 减去人眼坐标, 得到相对于人眼的位置
         r.set_view(get_view_matrix(eye_pos));
+        // 投影变换矩阵
         r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
 
         r.draw(pos_id, ind_id, rst::Primitive::Triangle);
