@@ -33,6 +33,22 @@ Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float z
     // TODO: Copy-paste your implementation from the previous assignment.
     Eigen::Matrix4f projection;
 
+    float n = -zNear;
+    float f = -zFar;
+    float t = fabs(n) * tan(eye_fov / 2 * MY_PI / 180);
+    float b = -t;
+    float r = t * aspect_ratio;
+    float l = -r;
+
+    projection(0, 0) = 2 * n / (r - l);
+    projection(0, 2) = (l + r) / (l - r);
+    projection(1, 1) = 2 * n / (t - b);
+    projection(1, 2) = (b + t) / (b - t);
+    projection(2, 2) = (f + n) / (n - f);
+    projection(2, 3) = 2 * f * n / (f - n);
+    projection(3, 2) = 1;
+    projection(3, 3) = 0;
+
     return projection;
 }
 
