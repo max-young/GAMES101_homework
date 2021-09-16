@@ -17,7 +17,7 @@
 			"args": []
 		},
 		{
-			"label": "Build",
+			"label": "CMakeBuild",
 			"dependsOrder": "sequence",
 			"dependsOn": [
 				"cmake",
