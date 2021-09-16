@@ -63,11 +63,14 @@ int main(int argc, const char** argv)
         filename = std::string(argv[1]);
     }
 
+    // 初始化光栅化器
     rst::rasterizer r(700, 700);
 
+    // 视点坐标
     Eigen::Vector3f eye_pos = {0,0,5};
 
 
+    // 两个三角形的三个顶点的坐标
     std::vector<Eigen::Vector3f> pos
             {
                     {2, 0, -2},
@@ -84,6 +87,7 @@ int main(int argc, const char** argv)
                     {3, 4, 5}
             };
 
+    // 6个顶点的RGB颜色值
     std::vector<Eigen::Vector3f> cols
             {
                     {217.0, 238.0, 185.0},
@@ -103,10 +107,14 @@ int main(int argc, const char** argv)
 
     if (command_line)
     {
+        // 初始化, 清空坐标系
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
 
+        // 旋转, 此处角度为0, 不旋转
         r.set_model(get_model_matrix(angle));
+        // 变换到相机坐标系下
         r.set_view(get_view_matrix(eye_pos));
+        // 投影变换
         r.set_projection(get_projection_matrix(45, 1, 0.1, 50));
 
         r.draw(pos_id, ind_id, col_id, rst::Primitive::Triangle);

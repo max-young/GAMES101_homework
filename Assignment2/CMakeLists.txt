@@ -5,6 +5,9 @@ find_package(OpenCV REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# 编译可进行调试的文件
+set(CMAKE_BUILD_TYPE Debug)
+
 include_directories(/usr/local/include include)
 
 add_executable(Rasterizer main.cpp src/rasterizer.cpp src/Triangle.cpp)

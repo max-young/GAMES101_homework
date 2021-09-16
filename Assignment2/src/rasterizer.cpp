@@ -43,6 +43,18 @@ auto to_vec4(const Eigen::Vector3f& v3, float w = 1.0f)
 static bool insideTriangle(int x, int y, const Vector3f* _v)
 {   
     // TODO : Implement this function to check if the point (x, y) is inside the triangle represented by _v[0], _v[1], _v[2]
+    Vector3f p(x, y, 0);
+    Vector3f v0(_v[0].x(), _v[0].y(), 0);
+    Vector3f v1(_v[1].x(), _v[1].y(), 0);
+    Vector3f v2(_v[2].x(), _v[2].y(), 0);
+    float a = (p-v0).cross(v2-v0)[2];
+    float b = (p-v1).cross(v0-v1)[2];
+    float c = (p-v2).cross(v1-v2)[2];
+    if (a > 0 & b > 0 & c > 0)
+    {
+        return true;
+    }
+    return false;
 }
 
 static std::tuple<float, float, float> computeBarycentric2D(float x, float y, const Vector3f* v)
@@ -55,6 +67,7 @@ static std::tuple<float, float, float> computeBarycentric2D(float x, float y, co
 
 void rst::rasterizer::draw(pos_buf_id pos_buffer, ind_buf_id ind_buffer, col_buf_id col_buffer, Primitive type)
 {
+    // 获取三个坐标数据
     auto& buf = pos_buf[pos_buffer.pos_id];
     auto& ind = ind_buf[ind_buffer.ind_id];
     auto& col = col_buf[col_buffer.col_id];
@@ -66,16 +79,21 @@ void rst::rasterizer::draw(pos_buf_id pos_buffer, ind_buf_id ind_buffer, col_buf
     for (auto& i : ind)
     {
         Triangle t;
+        // pos的6个坐标分两次获取, 分别对应两个三角形的三个顶点
+        // 并转换为齐次坐标
+        // 转换之后, 第四个元素w不等于1了
         Eigen::Vector4f v[] = {
                 mvp * to_vec4(buf[i[0]], 1.0f),
                 mvp * to_vec4(buf[i[1]], 1.0f),
                 mvp * to_vec4(buf[i[2]], 1.0f)
         };
-        //Homogeneous division
+        // Homogeneous division
+        // 将三个顶点的齐次坐标的最后一位转换为1
         for (auto& vec : v) {
             vec /= vec.w();
         }
         //Viewport transformation
+        // z做这个处理没看明白
         for (auto & vert : v)
         {
             vert.x() = 0.5*width*(vert.x()+1.0);
@@ -83,6 +101,7 @@ void rst::rasterizer::draw(pos_buf_id pos_buffer, ind_buf_id ind_buffer, col_buf
             vert.z() = vert.z() * f1 + f2;
         }
 
+        // 初始化三角形的三个顶点
         for (int i = 0; i < 3; ++i)
         {
             t.setVertex(i, v[i].head<3>());
@@ -94,10 +113,12 @@ void rst::rasterizer::draw(pos_buf_id pos_buffer, ind_buf_id ind_buffer, col_buf
         auto col_y = col[i[1]];
         auto col_z = col[i[2]];
 
+        // 对三个顶点配置颜色
         t.setColor(0, col_x[0], col_x[1], col_x[2]);
         t.setColor(1, col_y[0], col_y[1], col_y[2]);
         t.setColor(2, col_z[0], col_z[1], col_z[2]);
 
+        // 光栅化三角形
         rasterize_triangle(t);
     }
 }
@@ -105,9 +126,50 @@ void rst::rasterizer::draw(pos_buf_id pos_buffer, ind_buf_id ind_buffer, col_buf
 //Screen space rasterization
 void rst::rasterizer::rasterize_triangle(const Triangle& t) {
     auto v = t.toVector4();
-    
+
+    int minX=width, maxX=0, minY=height, maxY=0;
+    for(Vector4f &vert: v)
+    {
+        int floorX = (int)floor(vert.x());
+        int ceilX = (int)ceil(vert.x());
+        int floorY = (int)floor(vert.y());
+        int ceilY = (int)ceil(vert.y());
+        if (floorX < minX) {
+            minX = floorX;
+        }
+        if (ceilX > maxX) {
+            maxX = ceilX;
+        }
+        if (floorY < minY) {
+            minY = floorY;
+        }
+        if (ceilY > maxY) {
+            maxY = ceilY;
+        }
+    }
     // TODO : Find out the bounding box of current triangle.
     // iterate through the pixel and find if the current pixel is inside the triangle
+    for (int x = minX; x <= maxX ; x++)
+    {
+        for (int y = minY; y <= maxY; y++)
+        {
+            if (insideTriangle(x, y, t.v))
+            {
+                auto[alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
+                float w_reciprocal = 1.0/(alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
+                float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
+                z_interpolated *= w_reciprocal;
+                int currentIndex = get_index(x, y);
+                float currentDepth = depth_buf[currentIndex];
+                Vector3f currentPoint(x, y, 0);
+                if (z_interpolated < currentDepth)
+                {
+                    set_pixel(currentPoint, t.getColor());
+                    depth_buf[currentIndex] = z_interpolated;
+                } 
+            }
+        }
+    }
 
     // If so, use the following code to get the interpolated z value.
     //auto[alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
