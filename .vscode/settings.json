@@ -28,6 +28,7 @@
     "sparsecore": "cpp",
     "sparselu": "cpp",
     "sparseqr": "cpp",
-    "*.tcc": "cpp"
+    "*.tcc": "cpp",
+    "sstream": "cpp"
   }
 }

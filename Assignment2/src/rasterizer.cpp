@@ -98,7 +98,7 @@ void rst::rasterizer::draw(pos_buf_id pos_buffer, ind_buf_id ind_buffer, col_buf
         {
             vert.x() = 0.5*width*(vert.x()+1.0);
             vert.y() = 0.5*height*(vert.y()+1.0);
-            vert.z() = -vert.z() * f1 + f2;
+            vert.z() = vert.z() * f1 + f2;
         }
 
         // 初始化三角形的三个顶点
@@ -147,8 +147,8 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
             maxY = ceilY;
         }
     }
-    // TODO : Find out the bounding box of current triangle.
     // iterate through the pixel and find if the current pixel is inside the triangle
+    // If so, set the current pixel (use the set_pixel function) to the color of the triangle (use getColor function) if it should be painted.
     for (int x = minX; x <= maxX ; x++)
     {
         for (int y = minY; y <= maxY; y++)
@@ -162,22 +162,14 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
                 int currentIndex = get_index(x, y);
                 float currentDepth = depth_buf[currentIndex];
                 Vector3f currentPoint(x, y, 0);
-                if (z_interpolated < currentDepth)
+                if (-z_interpolated < currentDepth)
                 {
                     set_pixel(currentPoint, t.getColor());
-                    depth_buf[currentIndex] = z_interpolated;
+                    depth_buf[currentIndex] = -z_interpolated;
                 } 
             }
         }
     }
-
-    // If so, use the following code to get the interpolated z value.
-    //auto[alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
-    //float w_reciprocal = 1.0/(alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
-    //float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
-    //z_interpolated *= w_reciprocal;
-
-    // TODO : set the current pixel (use the set_pixel function) to the color of the triangle (use getColor function) if it should be painted.
 }
 
 void rst::rasterizer::set_model(const Eigen::Matrix4f& m)
