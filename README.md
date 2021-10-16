@@ -14,4 +14,4 @@
 
 #### 测试
 
-面对这里的代码, vscode的debug很慢, 原因使query所有的variables, 所以可以用lldb或者gdb命令行来进行debug
+面对这里的代码, vscode的debug很慢, 原因是query所有的variables, 所以可以用lldb或者gdb命令行来进行debug
