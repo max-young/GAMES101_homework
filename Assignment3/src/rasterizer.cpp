@@ -176,10 +176,13 @@ void rst::rasterizer::draw(std::vector<Triangle *> &TriangleList) {
     float f2 = (50 + 0.1) / 2.0;
 
     Eigen::Matrix4f mvp = projection * view * model;
+    // 循环绘制每个三角形
     for (const auto& t:TriangleList)
     {
         Triangle newtri = *t;
 
+        // 三角形的三个顶点做转换, 转换到相机坐标系下
+        // 为什么用array不用vector? 因为固定数量.
         std::array<Eigen::Vector4f, 3> mm {
                 (view * model * t->v[0]),
                 (view * model * t->v[1]),
@@ -188,15 +191,19 @@ void rst::rasterizer::draw(std::vector<Triangle *> &TriangleList) {
 
         std::array<Eigen::Vector3f, 3> viewspace_pos;
 
+        // 取相机坐标系三个顶点的前三位作为向量, 去掉齐次坐标
         std::transform(mm.begin(), mm.end(), viewspace_pos.begin(), [](auto& v) {
-            return v.template head<3>();
+            return v.template head<3>(); // v的模板函数, 也可以简化像下面这么写
+            // return v.head(3); // v的模板函数
         });
 
+        // 三个顶点做投影转换
         Eigen::Vector4f v[] = {
                 mvp * t->v[0],
                 mvp * t->v[1],
                 mvp * t->v[2]
         };
+
         //Homogeneous division
         for (auto& vec : v) {
             vec.x()/=vec.w();
@@ -204,6 +211,7 @@ void rst::rasterizer::draw(std::vector<Triangle *> &TriangleList) {
             vec.z()/=vec.w();
         }
 
+        // 三角形的三个顶点的三个法线做转换
         Eigen::Matrix4f inv_trans = (view * model).inverse().transpose();
         Eigen::Vector4f n[] = {
                 inv_trans * to_vec4(t->normal[0], 0.0f),
@@ -236,6 +244,7 @@ void rst::rasterizer::draw(std::vector<Triangle *> &TriangleList) {
         newtri.setColor(2, 148,121.0,92.0);
 
         // Also pass view space vertice position
+        // 投影转换后的三角形, 以及相机坐标系下的三角形
         rasterize_triangle(newtri, viewspace_pos);
     }
 }
@@ -280,6 +289,60 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t, const std::array<Eig
     // Use: Instead of passing the triangle's color directly to the frame buffer, pass the color to the shaders first to get the final color;
     // Use: auto pixel_color = fragment_shader(payload);
 
+    // 三个顶点转换成齐次坐标
+    auto v = t.toVector4();
+
+    // 找到三个顶点的最小最大x, 最小最大y, 在显示范围内
+    int minX=width, maxX=0, minY=height, maxY=0;
+    for(Vector4f &vert: v)
+    {
+        int floorX = (int)floor(vert.x());
+        int ceilX = (int)ceil(vert.x());
+        int floorY = (int)floor(vert.y());
+        int ceilY = (int)ceil(vert.y());
+        if (floorX < minX) {
+            minX = floorX;
+        }
+        if (ceilX > maxX) {
+            maxX = ceilX;
+        }
+        if (floorY < minY) {
+            minY = floorY;
+        }
+        if (ceilY > maxY) {
+            maxY = ceilY;
+        }
+    }
+
+    // 在有效范围内绘制
+    // iterate through the pixel and find if the current pixel is inside the triangle
+    // If so, set the current pixel (use the set_pixel function) to the color of the triangle (use getColor function) if it should be painted.
+    for (int x = minX; x <= maxX ; x++)
+    {
+        for (int y = minY; y <= maxY; y++)
+        {
+            if (insideTriangle(x, y, t.v))
+            {
+                // 计算重心坐标
+                auto[alpha, beta, gamma] = computeBarycentric2D(x, y, t.v);
+
+                float w_reciprocal = 1.0/(alpha / v[0].w() + beta / v[1].w() + gamma / v[2].w());
+                float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
+                z_interpolated *= w_reciprocal;
+
+                Eigen::Vector3f color = (alpha * t.color[0] + beta * t.color[1] + gamma * t.color[2]) * 255;
+
+                int currentIndex = get_index(x, y);
+                float currentDepth = depth_buf[currentIndex];
+                Vector2i currentPoint(x, y);
+                if (-z_interpolated < currentDepth)
+                {
+                    set_pixel(currentPoint, color);
+                    depth_buf[currentIndex] = -z_interpolated;
+                } 
+            }
+        }
+    }
  
 }
 

@@ -8,6 +8,7 @@
 #include "Texture.hpp"
 #include "OBJ_Loader.h"
 
+
 Eigen::Matrix4f get_view_matrix(Eigen::Vector3f eye_pos)
 {
     Eigen::Matrix4f view = Eigen::Matrix4f::Identity();
@@ -49,8 +50,25 @@ Eigen::Matrix4f get_model_matrix(float angle)
 
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
 {
-    // TODO: Use the same projection matrix from the previous assignments
+    Eigen::Matrix4f projection;
 
+    float n = -zNear;
+    float f = -zFar;
+    float t = fabs(n) * tan(eye_fov / 2 * MY_PI / 180);
+    float b = -t;
+    float r = t * aspect_ratio;
+    float l = -r;
+
+    projection(0, 0) = 2 * n / (r - l);
+    projection(0, 2) = (l + r) / (l - r);
+    projection(1, 1) = 2 * n / (t - b);
+    projection(1, 2) = (b + t) / (b - t);
+    projection(2, 2) = (f + n) / (n - f);
+    projection(2, 3) = 2 * f * n / (f - n);
+    projection(3, 2) = 1;
+    projection(3, 3) = 0;
+
+    return projection;
 }
 
 Eigen::Vector3f vertex_shader(const vertex_shader_payload& payload)
@@ -148,8 +166,6 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
     return result_color * 255.f;
 }
 
-
-
 Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payload)
 {
     
@@ -197,7 +213,6 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
     return result_color * 255.f;
 }
 
-
 Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
 {
     
@@ -240,16 +255,18 @@ Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
 
 int main(int argc, const char** argv)
 {
+    // 三角形数组
     std::vector<Triangle*> TriangleList;
 
     float angle = 140.0;
     bool command_line = false;
 
     std::string filename = "output.png";
+    // 三维加载模型
     objl::Loader Loader;
     std::string obj_path = "../models/spot/";
 
-    // Load .obj File
+    // Load .obj File 三位模型, 在vscode里可以用插件打开看到效果, 神奇
     bool loadout = Loader.LoadFile("../models/spot/spot_triangulated_good.obj");
     for(auto mesh:Loader.LoadedMeshes)
     {
@@ -266,13 +283,17 @@ int main(int argc, const char** argv)
         }
     }
 
+    // 光栅化器
     rst::rasterizer r(700, 700);
 
+    // 配置纹理
     auto texture_path = "hmap.jpg";
     r.set_texture(Texture(obj_path + texture_path));
 
+    // 定义着色函数是phone_fragment_shader
     std::function<Eigen::Vector3f(fragment_shader_payload)> active_shader = phong_fragment_shader;
 
+    // 根据参数来选择不同的着色方式
     if (argc >= 2)
     {
         command_line = true;
@@ -317,9 +338,13 @@ int main(int argc, const char** argv)
 
     if (command_line)
     {
+        // 初始化光栅化器的每个像素的颜色都是(0, 0, 0), 每个像素的深度都是0
         r.clear(rst::Buffers::Color | rst::Buffers::Depth);
+        // 配置转换矩阵, 旋转平移
         r.set_model(get_model_matrix(angle));
+        // 视口转换矩阵, 平移到相机坐标系下
         r.set_view(get_view_matrix(eye_pos));
+        // 投影转换矩阵
         r.set_projection(get_projection_matrix(45.0, 1, 0.1, 50));
 
         r.draw(TriangleList);
