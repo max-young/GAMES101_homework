@@ -227,6 +227,7 @@ void rst::rasterizer::draw(std::vector<Triangle *> &TriangleList) {
             vert.z() = vert.z() * f1 + f2;
         }
 
+        // 三角形的顶点转换为屏幕坐标系的坐标了, 重新生成三角形
         for (int i = 0; i < 3; ++i)
         {
             //screen space coordinates
@@ -330,7 +331,20 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t, const std::array<Eig
                 float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
                 z_interpolated *= w_reciprocal;
 
-                Eigen::Vector3f color = (alpha * t.color[0] + beta * t.color[1] + gamma * t.color[2]) * 255;
+                Eigen::Vector3f interpolated_color = (alpha * t.color[0] + beta * t.color[1] + gamma * t.color[2]) * 255;
+                // 纹理坐标的差值
+                Eigen::Vector2f interpolated_texcoords = alpha * t.tex_coords[0] + beta * t.tex_coords[1] + gamma * t.tex_coords[2];
+                // 法线的插值
+                Eigen::Vector3f interpolated_normal = alpha * t.normal[0] + beta * t.normal[1] + gamma * t.normal[2];
+                // auto interpolated_shadingcoords
+
+                // Use: fragment_shader_payload payload( interpolated_color, interpolated_normal.normalized(), interpolated_texcoords, texture ? &*texture : nullptr);
+                fragment_shader_payload payload(interpolated_color, interpolated_normal.normalized(), interpolated_texcoords, texture ? &*texture : nullptr);
+                Eigen::Vector3f color = fragment_shader(payload);
+                // Use: payload.view_pos = interpolated_shadingcoords;
+                // Use: Instead of passing the triangle's color directly to the frame buffer, pass the color to the shaders first to get the final color;
+                // Use: auto pixel_color = fragment_shader(payload);
+
 
                 int currentIndex = get_index(x, y);
                 float currentDepth = depth_buf[currentIndex];
