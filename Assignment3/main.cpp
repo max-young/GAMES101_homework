@@ -129,10 +129,16 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     for (auto& light : lights)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
+        Eigen::Vector3f unit_normal = normal.normalized();
+        Eigen::Vector3f unit_light_position = light.position.normalized();
+        float intensity = (light.intensity/255).norm();
+        Eigen::Vector3f diffuse_color = kd/255 * intensity * unit_normal.dot(unit_light_position);
+        Eigen::Vector3f specular_color = ks * intensity * pow((unit_normal.dot((eye_pos+light.position).normalized())), p);
+        result_color += diffuse_color;
+        result_color += specular_color;
         // components are. Then, accumulate that result on the *result_color* object.
-
     }
-
+    result_color += (ka * (amb_light_intensity/255).norm());
     return result_color * 255.f;
 }
 
@@ -142,11 +148,14 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
     Eigen::Vector3f kd = payload.color;
     Eigen::Vector3f ks = Eigen::Vector3f(0.7937, 0.7937, 0.7937);
 
+    // 两个光源, 光源位置, 和光源强度
     auto l1 = light{{20, 20, 20}, {500, 500, 500}};
     auto l2 = light{{-20, 20, 0}, {500, 500, 500}};
 
     std::vector<light> lights = {l1, l2};
+    // 环境光照强度
     Eigen::Vector3f amb_light_intensity{10, 10, 10};
+    // 观测位置
     Eigen::Vector3f eye_pos{0, 0, 10};
 
     float p = 150;
@@ -158,11 +167,17 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
     Eigen::Vector3f result_color = {0, 0, 0};
     for (auto& light : lights)
     {
+        Eigen::Vector3f unit_normal = normal.normalized();
+        Eigen::Vector3f unit_light_position = light.position.normalized();
+        float intensity = (light.intensity/255).norm();
+        Eigen::Vector3f diffuse_color = kd/255 * intensity * unit_normal.dot(unit_light_position);
+        Eigen::Vector3f specular_color = ks * intensity * pow((unit_normal.dot((eye_pos+light.position).normalized())), p);
+        result_color += diffuse_color;
+        result_color += specular_color;
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
-        
     }
-
+    result_color += (ka * (amb_light_intensity/255).norm());
     return result_color * 255.f;
 }
 
