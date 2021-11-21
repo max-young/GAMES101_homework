@@ -11,6 +11,17 @@ bool rayTriangleIntersect(const Vector3f& v0, const Vector3f& v1, const Vector3f
     // that's specified bt v0, v1 and v2 intersects with the ray (whose
     // origin is *orig* and direction is *dir*)
     // Also don't forget to update tnear, u and v.
+    Vector3f E1 = v1 - v0;
+    Vector3f E2 = v2 - v0;
+    Vector3f S = orig - v0;
+    Vector3f S1 = crossProduct(dir, E2);
+    Vector3f S2 = crossProduct(S, E1);
+    float SE = dotProduct(S1, E1);
+    tnear = dotProduct(S2, E2) / SE;
+    u = dotProduct(S1, S) / SE;
+    v = dotProduct(S2, dir) / SE;
+    if (tnear > 0 && (1 - u - v > 0) && u > 0 && v > 0)
+        return true;
     return false;
 }
 
@@ -59,11 +70,13 @@ public:
     void getSurfaceProperties(const Vector3f&, const Vector3f&, const uint32_t& index, const Vector2f& uv, Vector3f& N,
                               Vector2f& st) const override
     {
+        // 三个顶点
         const Vector3f& v0 = vertices[vertexIndex[index * 3]];
         const Vector3f& v1 = vertices[vertexIndex[index * 3 + 1]];
         const Vector3f& v2 = vertices[vertexIndex[index * 3 + 2]];
         Vector3f e0 = normalize(v1 - v0);
         Vector3f e1 = normalize(v2 - v1);
+        // 法线
         N = normalize(crossProduct(e0, e1));
         const Vector2f& st0 = stCoordinates[vertexIndex[index * 3]];
         const Vector2f& st1 = stCoordinates[vertexIndex[index * 3 + 1]];

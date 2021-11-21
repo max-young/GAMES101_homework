@@ -3,6 +3,9 @@ project(RayTracing)
 
 set(CMAKE_CXX_STANDARD 17)
 
+# 编译可进行调试的文件
+set(CMAKE_BUILD_TYPE Debug)
+
 include_directories(/usr/local/include include)
 
 add_executable(RayTracing main.cpp src/Scene.cpp src/Renderer.cpp)
