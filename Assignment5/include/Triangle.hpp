@@ -20,7 +20,8 @@ bool rayTriangleIntersect(const Vector3f& v0, const Vector3f& v1, const Vector3f
     tnear = dotProduct(S2, E2) / SE;
     u = dotProduct(S1, S) / SE;
     v = dotProduct(S2, dir) / SE;
-    if (tnear > 0 && (1 - u - v > 0) && u > 0 && v > 0)
+    float epsilon = 0.00001;
+    if (tnear + epsilon >= 0 && (1 - u - v + epsilon >= 0) && u + epsilon >= 0 && v + epsilon >= 0)
         return true;
     return false;
 }
