@@ -9,9 +9,13 @@ BVHAccel::BVHAccel(std::vector<Object*> p, int maxPrimsInNode,
 {
     time_t start, stop;
     time(&start);
+    // 上面primitives(std::move(p))将meshtriangle里的triangle都赋值给primitives了, 共有4968个三角形
+    // 如果没有三角形, 就不用执行了
     if (primitives.empty())
         return;
 
+    // primitives就是元素是bunny trianglemesh的三角形
+    // 递归函数执行分割
     root = recursiveBuild(primitives);
 
     time(&stop);
@@ -27,10 +31,13 @@ BVHAccel::BVHAccel(std::vector<Object*> p, int maxPrimsInNode,
 
 BVHBuildNode* BVHAccel::recursiveBuild(std::vector<Object*> objects)
 {
+    // 初始化root节点
     BVHBuildNode* node = new BVHBuildNode();
 
     // Compute bounds of all primitives in BVH node
     Bounds3 bounds;
+    // 将所有三角形的bounds合并成一个大的bound
+    // objects.size()是4968, 4968个三角形
     for (int i = 0; i < objects.size(); ++i)
         bounds = Union(bounds, objects[i]->getBounds());
     if (objects.size() == 1) {
@@ -98,6 +105,7 @@ Intersection BVHAccel::Intersect(const Ray& ray) const
     Intersection isect;
     if (!root)
         return isect;
+    // 从root节点开始计算
     isect = BVHAccel::getIntersection(root, ray);
     return isect;
 }
@@ -105,5 +113,19 @@ Intersection BVHAccel::Intersect(const Ray& ray) const
 Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
 {
     // TODO Traverse the BVH to find intersection
-
+    Intersection inter;
+    // 如果不相交, 则返回
+    std::array<int, 3> dirIsNeg = {int(ray.direction.x>0),int(ray.direction.y>0),int(ray.direction.z>0)};
+    if (!node->bounds.IntersectP(ray, ray.direction_inv, dirIsNeg))
+        return inter;
+    // 如果是叶子结点, 找到相交的三角形
+    if (node->left == nullptr && node->right == nullptr) {
+        return node->object->getIntersection(ray);
+    }
+    // 递归执行左结点
+    Intersection interLeft = BVHAccel::getIntersection(node->left, ray);
+    // 递归执行右结点
+    Intersection interRight = BVHAccel::getIntersection(node->right, ray);
+    // 返回最近的结点
+    return interLeft.distance < interRight.distance ? interLeft : interRight;
 }

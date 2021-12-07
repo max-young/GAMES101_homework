@@ -15,9 +15,12 @@ int main(int argc, char** argv)
 
     MeshTriangle bunny("../models/bunny/bunny.obj");
 
+    // 三角网
     scene.Add(&bunny);
+    // 两个光源
     scene.Add(std::make_unique<Light>(Vector3f(-20, 70, 20), 1));
     scene.Add(std::make_unique<Light>(Vector3f(20, 70, 20), 1));
+    // 三角形分片
     scene.buildBVH();
 
     Renderer r;

@@ -7,6 +7,9 @@
 
 void Scene::buildBVH() {
     printf(" - Generating BVH...\n\n");
+    // objects是scene的属性, vector数组, 里面的元素就是add进去的bunny trianglemesh
+    // 第二个参数1代表最后分割的叶子节点的三角形数量
+    // 第三个参数是分割方法
     this->bvh = new BVHAccel(objects, 1, BVHAccel::SplitMethod::NAIVE);
 }
 
