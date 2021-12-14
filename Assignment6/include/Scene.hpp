@@ -64,12 +64,17 @@ public:
 // If the ray is outside, you need to make cosi positive cosi = -N.I
 //
 // If the ray is inside, you need to invert the refractive indices and negate the normal N
+// 计算折射方向
     Vector3f refract(const Vector3f &I, const Vector3f &N, const float &ior) const
     {
+        // 入射方向和法线的余弦, 限制在-1到1的范围
         float cosi = clamp(-1, 1, dotProduct(I, N));
         float etai = 1, etat = ior;
         Vector3f n = N;
+        // 如果入射方向和法线方向相反, 则是空气进入介质, 我们把余弦变成正数, 相当于把入射方向改成向外
+        // 如果入射方向和发现方向相同, 则是截止进入空气, 折射率交换, 法线逆转
         if (cosi < 0) { cosi = -cosi; } else { std::swap(etai, etat); n= -N; }
+        // 然后根据折射公式计算折射的方向
         float eta = etai / etat;
         float k = 1 - eta * eta * (1 - cosi * cosi);
         return k < 0 ? 0 : eta * I + (eta * cosi - sqrtf(k)) * n;
@@ -79,11 +84,11 @@ public:
 
     // Compute Fresnel equation
 //
-// \param I is the incident view direction
+// \param I is the incident view direction 入射光线
 //
-// \param N is the normal at the intersection point
+// \param N is the normal at the intersection point 法线
 //
-// \param ior is the material refractive index
+// \param ior is the material refractive index 折射系数
 //
 // \param[out] kr is the amount of light reflected
     void fresnel(const Vector3f &I, const Vector3f &N, const float &ior, float &kr) const
@@ -94,10 +99,12 @@ public:
         // Compute sini using Snell's law
         float sint = etai / etat * sqrtf(std::max(0.f, 1 - cosi * cosi));
         // Total internal reflection
+        // 全反射
         if (sint >= 1) {
             kr = 1;
         }
         else {
+            // 根据光强方程计算反射比
             float cost = sqrtf(std::max(0.f, 1 - sint * sint));
             cosi = fabsf(cosi);
             float Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));

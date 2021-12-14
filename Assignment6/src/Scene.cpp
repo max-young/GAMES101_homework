@@ -53,45 +53,65 @@ bool Scene::trace(
 //
 // If the surface is duffuse/glossy we use the Phong illumation model to compute the color
 // at the intersection point.
+// ray 光线(视线)
+// depth 弹射次数
 Vector3f Scene::castRay(const Ray &ray, int depth) const
 {
+    // 如果光线弹射次数大于限制, 则返回黑色
     if (depth > this->maxDepth) {
         return Vector3f(0.0,0.0,0.0);
     }
+    // 这条光线和scene相交的结果
     Intersection intersection = Scene::intersect(ray);
+    // 相交的材质, 反射、折射的性质等等
     Material *m = intersection.m;
+    // 相交的对象, 三角形、 圆形
     Object *hitObject = intersection.obj;
+    // 背景色
     Vector3f hitColor = this->backgroundColor;
-//    float tnear = kInfinity;
+    // float tnear = kInfinity;
     Vector2f uv;
     uint32_t index = 0;
+    // 如果相交
     if(intersection.happened) {
 
+        // 交点
         Vector3f hitPoint = intersection.coords;
+        // 交点在对象上的法线, 例如相交对象是三角形, 那么这个就是三角形面在交点上的法线
         Vector3f N = intersection.normal; // normal
         Vector2f st; // st coordinates
+        // 获取交点处的三角形属性, 备注: 代码里只重复获取了法线
         hitObject->getSurfaceProperties(hitPoint, ray.direction, index, uv, N, st);
-//        Vector3f tmp = hitPoint;
+        // Vector3f tmp = hitPoint;
+        // 获取相交对象(三角形)的材质
         switch (m->getType()) {
+            // 如果是反射和折射
             case REFLECTION_AND_REFRACTION:
             {
+                // 反射方向
                 Vector3f reflectionDirection = normalize(reflect(ray.direction, N));
+                // 折射方向
                 Vector3f refractionDirection = normalize(refract(ray.direction, N, m->ior));
+                // 精度问题, 如果方向是往内, 则起点往内移一点, 如果往外, 则往外移一点
                 Vector3f reflectionRayOrig = (dotProduct(reflectionDirection, N) < 0) ?
                                              hitPoint - N * EPSILON :
                                              hitPoint + N * EPSILON;
                 Vector3f refractionRayOrig = (dotProduct(refractionDirection, N) < 0) ?
                                              hitPoint - N * EPSILON :
                                              hitPoint + N * EPSILON;
+                // 反射光线和折射光线再到scene里传播, 递归执行, 找到相交的颜色
                 Vector3f reflectionColor = castRay(Ray(reflectionRayOrig, reflectionDirection), depth + 1);
                 Vector3f refractionColor = castRay(Ray(refractionRayOrig, refractionDirection), depth + 1);
+                // 计算出反射比
                 float kr;
                 fresnel(ray.direction, N, m->ior, kr);
+                // 最终颜色是反射+折射
                 hitColor = reflectionColor * kr + refractionColor * (1 - kr);
                 break;
             }
             case REFLECTION:
             {
+                // 只有反射
                 float kr;
                 fresnel(ray.direction, N, m->ior, kr);
                 Vector3f reflectionDirection = reflect(ray.direction, N);
@@ -115,8 +135,10 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
                 // Loop over all lights in the scene and sum their contribution up
                 // We also apply the lambert cosine law
                 // [/comment]
+                // 光源循环
                 for (uint32_t i = 0; i < get_lights().size(); ++i)
                 {
+                    // 判断是否是面光源
                     auto area_ptr = dynamic_cast<AreaLight*>(this->get_lights()[i].get());
                     if (area_ptr)
                     {
@@ -132,7 +154,9 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
                         Object *shadowHitObject = nullptr;
                         float tNearShadow = kInfinity;
                         // is the point in shadow, and is the nearest occluding object closer to the object than the light itself?
+                        // 照射点和光源的连线是否和scene里的对象相交, 如果相交, 则处在阴影中
                         bool inShadow = bvh->Intersect(Ray(shadowPointOrig, lightDir)).happened;
+                        // 如果不在阴影中, 说明是直接照射, 那么需要加上漫反射
                         lightAmt += (1 - inShadow) * get_lights()[i]->intensity * LdotN;
                         Vector3f reflectionDirection = reflect(-lightDir, N);
                         specularColor += powf(std::max(0.f, -dotProduct(reflectionDirection, ray.direction)),
@@ -144,6 +168,6 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
             }
         }
     }
-
+    // 不相交则默认返回scene的背景色
     return hitColor;
 }
