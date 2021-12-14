@@ -156,8 +156,9 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
                         // is the point in shadow, and is the nearest occluding object closer to the object than the light itself?
                         // 照射点和光源的连线是否和scene里的对象相交, 如果相交, 则处在阴影中
                         bool inShadow = bvh->Intersect(Ray(shadowPointOrig, lightDir)).happened;
-                        // 如果不在阴影中, 说明是直接照射, 那么需要加上漫反射
+                        // 光源强度
                         lightAmt += (1 - inShadow) * get_lights()[i]->intensity * LdotN;
+                        // 高光
                         Vector3f reflectionDirection = reflect(-lightDir, N);
                         specularColor += powf(std::max(0.f, -dotProduct(reflectionDirection, ray.direction)),
                                               m->specularExponent) * get_lights()[i]->intensity;
