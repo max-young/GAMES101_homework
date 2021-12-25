@@ -76,6 +76,7 @@ public:
         float x = std::sqrt(get_random_float()), y = get_random_float();
         pos.coords = v0 * (1.0f - x) + v1 * (x * (1.0f - y)) + v2 * (x * y);
         pos.normal = this->normal;
+        pos.obj = this;
         pdf = 1.0f / area;
     }
     float getArea(){
@@ -244,11 +245,11 @@ inline Intersection Triangle::getIntersection(Ray ray)
     double det_inv = 1. / det;
     Vector3f tvec = ray.origin - v0;
     u = dotProduct(tvec, pvec) * det_inv;
-    if (u < 0 || u > 1)
+    if (u < EPSILON || u > 1)
         return inter;
     Vector3f qvec = crossProduct(tvec, e1);
     v = dotProduct(ray.direction, qvec) * det_inv;
-    if (v < 0 || u + v > 1)
+    if (v < EPSILON || u + v > 1)
         return inter;
     t_tmp = dotProduct(e2, qvec) * det_inv;
 
@@ -258,6 +259,7 @@ inline Intersection Triangle::getIntersection(Ray ray)
     inter.normal = normal;
     inter.distance = t_tmp;
     inter.obj = this;
+    inter.emit = m->getEmission();
     inter.m = m;
 
     return inter;

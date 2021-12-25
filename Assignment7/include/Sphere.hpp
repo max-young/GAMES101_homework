@@ -61,6 +61,7 @@ public:
 
         result.coords = Vector3f(ray.origin + ray.direction * t0);
         result.normal = normalize(Vector3f(result.coords - center));
+        result.emit = m->getEmission();
         result.m = this->m;
         result.obj = this;
         result.distance = t0;
